@@ -1,0 +1,62 @@
+et mic;
+let playerY;
+let obstacles = [];
+let velocity = 0;
+let gravity = 0.6;
+let lift = -10;
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  mic = new p5.AudioIn();
+  mic.start();
+  playerY = height / 2;
+}
+
+function draw() {
+  background(10, 10, 25);
+
+  let vol = mic.getLevel();
+  let h = map(vol, 0, 0.3, 0, height / 2);
+  if (vol < 0.01) h = 0;
+
+  if (frameCount % 5 === 0 && h > 0) {
+    let waveY = height / 2 + sin(frameCount * 0.08) * h;
+    obstacles.push({
+      x: width,
+      y: waveY + random(-h / 3, h / 3),
+      r: 25 + random(20)
+    });
+  }
+
+  noStroke();
+  fill(120, 180, 255, 100);
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    let o = obstacles[i];
+    o.x -= 8;
+
+    ellipse(o.x, o.y, o.r);
+
+    if (o.x < -50) obstacles.splice(i, 1);
+
+    if (dist(o.x, o.y, 80, playerY) < o.r / 2 + 10) {
+      fill(255, 0, 0, 100);
+      rect(0, 0, width, height);
+    }
+  }
+
+  fill(255);
+  ellipse(80, playerY, 20);
+
+  velocity += gravity;
+  playerY += velocity;
+
+  if (touches.length > 0) {
+    velocity += lift;
+  }
+
+  playerY = constrain(playerY, 0, height);
+}
+
+function touchStarted() {
+  getAudioContext().resume();
+}
